@@ -1,6 +1,6 @@
 ### Sevi Plugin
 
-Sevi Plugin Uses to sync the other systems with erpnext.
+Sevi Plugin Uses to sync the other systems with erpnext using rest API.
 
 ### Installation
 
@@ -8,7 +8,7 @@ You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
+bench get-app $URL_OF_THIS_REPO --branch sevi
 bench install-app sevi
 ```
 
