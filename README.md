@@ -1,5 +1,8 @@
 ### Sevi Plugin
 
+> [!WARNING]
+> Do not merge this branch into the main branch.
+
 Sevi Plugin Uses to sync the other systems with erpnext using rest API.
 
 ### Installation
