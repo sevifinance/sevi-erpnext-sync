@@ -2,12 +2,10 @@ import frappe
 from frappe.utils.password import get_decrypted_password
 from frappe.auth import LoginManager
 
-from frappe.utils import get_url, now_datetime, add_to_date, random_string, nowdate
+from frappe.utils import get_url, now_datetime, add_to_date, random_string, nowdate, getdate
 from datetime import timedelta
-from .api_functions import create_company_doc, create_user_doc, add_user_permission_for_company, setup_company_user_role_permissions
+from .api_functions import create_company_doc, create_user_doc, add_user_permission_for_company, setup_company_user_role_permissions, COMPANY_USER_ROLE
 # from frappe.accounts.doctype.company.company import setup_company_defaults
-
-COMPANY_USER_ROLE = "Company User"
 
 @frappe.whitelist(methods=["POST"])
 def generate_magic_login_url(email):
@@ -149,48 +147,131 @@ def create_company_api(company_name, company_abbr, company_currency, hoday_from_
         frappe.throw(f"Failed to create company: {str(e)}")
 
 
-@frappe.whitelist(methods=["POST"])
-def create_user_for_company_api(email, first_name, company_identifier):
+@frappe.whitelist(methods=["POST"]) 
+def create_user_api(data):
     """
-    Creates a new user and links them to an existing company, restricting access.
+    Whitelisted method to create an Employee, a linked User, and assign roles.
+
     Args:
-        email (str): Email for the new user (will be their username).
-        first_name (str): First name of the user.
-        company_identifier (str): The name or abbreviation of the company to link the user to.
+        data (dict): A dictionary containing all necessary fields for both Employee and User.
+                     Example: {
+                        "data": {
+                            "employee_name": "Dame Bahiru",
+                            "company": "Other Sevi",
+                            "date_of_joining": "2024-01-01",
+                            "email": "dame.bahiru@sevi.com",
+                            "first_name": "Dame",
+                            "last_name": "Bahiru",
+                            "date_of_birth": "2000-01-01",
+                            "gender": "Male"
+                        }
+                    }
+
     Returns:
-        dict: Success message or error, including user details.
+        dict: A dictionary containing the name of the created employee and user email,
+              or an error message.
     """
-    frappe.db.begin()
+    # Extract employee-specific data
+    company = data.get("company")
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+    employee_name = first_name + " " + last_name if first_name and last_name else data.get("employee_name", "")
+    date_of_joining = data.get("date_of_joining")
+    date_of_birth = data.get("date_of_birth") 
+    gender = data.get("gender", "Not Specified")
+
+    # Add other employee fields as needed from the 'data' dictionary
+
+    # Extract user-specific data
+    user_email = data.get("email")
+    user_type = data.get("user_type", "System User")
+    enabled = data.get("enabled", 1)
+
+    permissions_to_set = [
+            {"doctype": "Item", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+            {"doctype": "Customer", "read": 1, "write": 1, "create": 1, "delete": 0},
+            {"doctype": "Supplier", "read": 1, "write": 1, "create": 1, "delete": 0},
+            {"doctype": "Sales Order", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+            {"doctype": "Purchase Order", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+            {"doctype": "Sales Invoice", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+            {"doctype": "Purchase Invoice", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+            {"doctype": "Company", "read": 1, "write": 0, "create": 0, "delete": 0}, # Allow reading their own company
+            # Add more DocTypes and their permissions as needed
+        ]
+    roles = data.get("roles", permissions_to_set)
+
+    # Basic validation for mandatory fields
+    if not first_name and not last_name:
+        frappe.throw("First Name and Last Name is mandatory.")
+    if not company:
+        frappe.throw("Company is mandatory for Employee.")
+    if not user_email:
+        frappe.throw("User email is mandatory for creating a User.")
+    if not date_of_joining:
+        frappe.throw("Date of Joining is mandatory for Employee.")
+    if not date_of_birth:
+        frappe.throw("Date of Birth is mandatory for Employee.")
+    if not gender:
+        frappe.throw("Gender is mandatory for Employee.")
+
+    if not frappe.has_permission("Employee", "create") or \
+       not frappe.has_permission("User", "create"):
+        frappe.throw("You do not have permission to create Employees or Users.")
+
     try:
-        # if frappe.db.exists("User", email):
-        #     frappe.throw(f"User with email {email} already exists.", title="User Exists")
+        employee_doc = frappe.get_doc({
+            "doctype": "Employee",
+            "first_name": first_name,
+            "last_name": last_name,
+            "employee_name": employee_name,
+            "company": company,
+            "date_of_joining": getdate(date_of_joining),
+            "date_of_birth": getdate(date_of_birth),
+            "gender": gender,
+            "status": "Active"
+        })
+        employee_doc.insert(ignore_permissions=False)
+        frappe.db.commit() 
 
-        company_doc = None
-        if frappe.db.exists("Company", company_identifier):
-            company_doc = frappe.get_doc("Company", company_identifier)
-        elif frappe.db.exists("Company", {"abbr": company_identifier}):
-            company_doc_name = frappe.db.get_value("Company", {"abbr": company_identifier}, "name")
-            if company_doc_name:
-                company_doc = frappe.get_doc("Company", company_doc_name)
-        
-        if not company_doc:
-            frappe.throw(f"Company with identifier '{company_identifier}' not found.", title="Company Not Found")
+        frappe.msgprint(f"Employee '{employee_doc.name}' created successfully.")
 
-        user = create_user_doc(email, first_name, company_doc.name) 
-        
-        add_user_permission_for_company(user.name, company_doc.name)
+        if frappe.db.exists("User", user_email):
+            frappe.throw(f"User with email '{user_email}' already exists.")
 
-        # frappe.db.set_value("User", user.name, "default_company", company_doc.name)
-
+        user_doc = frappe.get_doc({
+            "doctype": "User",
+            "email": user_email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "user_type": user_type,
+            "roles": roles 
+        })
+        user_doc.insert(ignore_permissions=False)
         frappe.db.commit()
+
+        frappe.msgprint(f"User '{user_doc.email}' created and roles assigned successfully.")
+
+        employee_doc.user_id = user_email
+        employee_doc.save(ignore_permissions=False)
+        frappe.db.commit()
+
+        frappe.msgprint(f"User '{user_email}' linked to Employee '{employee_doc.name}'.")
+
         return {
             "status": "success",
-            "message": f"User {email} created and linked to company {company_doc.name} successfully. Role '{COMPANY_USER_ROLE}' permissions configured.",
-            "user_name": user.name,
-            "linked_company_name": company_doc.name
+            "employee_name": employee_doc.name,
+            "user_email": user_doc.email,
+            "message": "Employee, User, and linking completed successfully."
         }
+
+    except frappe.exceptions.DuplicateEntryError as e:
+        frappe.db.rollback()
+        frappe.throw(f"Duplicate entry error: {e}")
+    except frappe.exceptions.ValidationError as e:
+        frappe.db.rollback()
+        frappe.throw(f"Validation error: {e}")
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Create User for Company API Failed")
-        frappe.throw(f"Failed to create user for company: {str(e)}")
+        frappe.log_error(frappe.get_traceback(), "create_employee_and_user_with_roles API Error")
+        frappe.throw(f"An unexpected error occurred: {e}")
 

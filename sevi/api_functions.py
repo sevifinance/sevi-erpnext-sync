@@ -93,6 +93,8 @@ def create_user_doc(email, first_name, company_context_name=None, permissions=No
     
     return user
 
+
+
 def setup_company_user_role_permissions(role_name, permissions=None):
     """
     Sets up default permissions for the specified role.
