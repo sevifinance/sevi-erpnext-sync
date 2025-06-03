@@ -7,50 +7,9 @@ from datetime import timedelta
 from .api_functions import create_company_doc, create_user_doc, add_user_permission_for_company, setup_company_user_role_permissions
 # from frappe.accounts.doctype.company.company import setup_company_defaults
 
+COMPANY_USER_ROLE = "Company User"
 
-# Define a specific role name for these users (used in user creation)
-COMPANY_USER_ROLE = "Company User" # We might want to make this configurable
-
-
-# test guest api
-@frappe.whitelist(allow_guest=True)
-def test_api():
-    """
-    A simple test API endpoint to verify the API is working.
-    :return: A JSON response with a message.
-    """
-    return {"message": "Hello from Sevi ERPNext API!"}
-
-@frappe.whitelist(allow_guest=True)
-def generate_login_link(email):
-    """
-    generate_login_link with token for user login
-    :param email: User's email address
-    :return: json response with login link or error message 
-    """
-
-    user = frappe.db.get_value("User", {"email": email}, "name")
-    if not user:
-        return {"error": "User not found"} 
-
-    # Generate a token for the user
-    try:
-        token = frappe.generate_hash(length=16)
-    except Exception as e:
-        return {"error": f"Failed to generate token: {str(e)}"}
-
-    # Store the token in the database
-    try:
-        frappe.db.set_value("User", user, "login_token", token)
-    except Exception as e:
-        return {"error": f"Failed to store token: {str(e)}"}
-
-    # Generate the login link
-    login_link = get_url(f"/api/method/frappe.auth.login_with_token?token={token}")
-    return {"login_link": login_link}
-
-
-@frappe.whitelist(methods=["POST"], allow_guest=True)
+@frappe.whitelist(methods=["POST"])
 def generate_magic_login_url(email):
     """
     Generates a magic login link for the given email.
@@ -149,7 +108,7 @@ def process_magic_login(token):
         # frappe.respond_as_web_page("Login Failed", "An error occurred while trying to log you in. Please try again or contact support.", http_status_code=500)
         
 
-@frappe.whitelist(methods=["POST"], allow_guest=True)
+@frappe.whitelist(methods=["POST"])
 def create_company_api(company_name, company_abbr, company_currency, hoday_from_date, holiday_to_date, country=""):
     """
     Creates a new company.
@@ -203,15 +162,13 @@ def create_user_for_company_api(email, first_name, company_identifier):
     """
     frappe.db.begin()
     try:
-        # --- Check for existing user ---
-        if frappe.db.exists("User", email):
-            frappe.throw(f"User with email {email} already exists.", title="User Exists")
+        # if frappe.db.exists("User", email):
+        #     frappe.throw(f"User with email {email} already exists.", title="User Exists")
 
-        # --- Find the company ---
         company_doc = None
-        if frappe.db.exists("Company", company_identifier): # Check if identifier is company name (PK)
+        if frappe.db.exists("Company", company_identifier):
             company_doc = frappe.get_doc("Company", company_identifier)
-        elif frappe.db.exists("Company", {"abbr": company_identifier}): # Check if identifier is abbreviation
+        elif frappe.db.exists("Company", {"abbr": company_identifier}):
             company_doc_name = frappe.db.get_value("Company", {"abbr": company_identifier}, "name")
             if company_doc_name:
                 company_doc = frappe.get_doc("Company", company_doc_name)
@@ -219,14 +176,11 @@ def create_user_for_company_api(email, first_name, company_identifier):
         if not company_doc:
             frappe.throw(f"Company with identifier '{company_identifier}' not found.", title="Company Not Found")
 
-        # --- Create User (which also handles role creation and basic permissions) ---
         user = create_user_doc(email, first_name, company_doc.name) 
         
-        # --- Assign User Permissions ---
         add_user_permission_for_company(user.name, company_doc.name)
 
-        # --- Set User's Default Company ---
-        frappe.db.set_value("User", user.name, "default_company", company_doc.name)
+        # frappe.db.set_value("User", user.name, "default_company", company_doc.name)
 
         frappe.db.commit()
         return {

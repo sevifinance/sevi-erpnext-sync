@@ -5,6 +5,8 @@ from frappe.auth import LoginManager
 from frappe.utils import get_url, now_datetime, add_to_date, random_string, nowdate
 from datetime import timedelta
 
+COMPANY_USER_ROLE = "Company User"
+
 def create_company_doc(company_name, abbr, default_currency, country, hoday_from_date, holiday_to_date):
     """Creates a Company document and its default Holiday List."""
     
@@ -36,6 +38,19 @@ def create_company_doc(company_name, abbr, default_currency, country, hoday_from
     frappe.msgprint(f"Company '{company_name}' created with Holiday List '{holiday_list.name}'.", indicator='green')
     return company
 
+def new_doc(doctype, **kwargs):
+    """
+    Creates a new document of the specified doctype with the provided keyword arguments.
+    If the doctype does not exist, it raises an exception.
+    """
+    if not frappe.db.exists("DocType", doctype):
+        frappe.throw(f"Doctype '{doctype}' does not exist.", title="Doctype Not Found")
+    
+    doc = frappe.new_doc(doctype)
+    for key, value in kwargs.items():
+        setattr(doc, key, value)
+    
+    return doc
 
 def create_user_doc(email, first_name, company_context_name=None, permissions=None):
     """Creates a User document and configures the COMPANY_USER_ROLE if new."""
@@ -49,16 +64,28 @@ def create_user_doc(email, first_name, company_context_name=None, permissions=No
         role_created_now = True
         frappe.msgprint(f"Role '{COMPANY_USER_ROLE}' created.", indicator='green')
     
-    user = frappe.new_doc("User")
-    user.email = email
-    user.first_name = first_name
-    user.send_welcome_email = 0 
-    user.user_type = "System User"
-    
-    user.add_roles(COMPANY_USER_ROLE)
+    if not frappe.db.exists("User", email):
+        user = frappe.new_doc("User")
+        user.email = email
+        user.first_name = first_name
+        user.send_welcome_email = 0 
+        user.user_type = "System User"
+        
+        user.add_roles(COMPANY_USER_ROLE)
 
-    user.enabled = 1
-    user.insert(ignore_permissions=True)
+        user.enabled = 1
+        # user.insert(ignore_permissions=True)
+        frappe.msgprint(f"User '{email}' created and assigned role '{COMPANY_USER_ROLE}'.", indicator='green')
+    else:
+        user = frappe.get_doc("User", email)
+        if COMPANY_USER_ROLE not in user.roles:
+            user.add_roles(COMPANY_USER_ROLE)
+            user.email = email  # Ensure email is set correctly
+            user.first_name = first_name  # Update first name if needed
+            user.enabled = 1  # Ensure user is enabled
+            user.user_type = "System User"  # Ensure user type is set correctly
+            user.save(ignore_permissions=True)
+            frappe.msgprint(f"User '{email}' already exists. Role '{COMPANY_USER_ROLE}' assigned.", indicator='blue')
 
     if role_created_now:
         setup_company_user_role_permissions(COMPANY_USER_ROLE, permissions=permissions)
@@ -121,7 +148,7 @@ def setup_company_user_role_permissions(role_name, permissions=None):
     # After adding/updating DocPerms, clear cache for permissions to take effect immediately.
     frappe.clear_cache(doctype="DocPerm")
     frappe.clear_cache(doctype=role_name) # Clear role cache
-    frappe.permissions.reset_perms_for(role_name) # Reset permissions for the role
+    # frappe.permissions.reset_perms_for(role_name) # Reset permissions for the role
 
     frappe.msgprint(f"Permissions for role '{role_name}' processed for specified DocTypes.")
 
