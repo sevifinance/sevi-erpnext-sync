@@ -275,3 +275,10 @@ def create_user_api(data):
         frappe.log_error(frappe.get_traceback(), "create_employee_and_user_with_roles API Error")
         frappe.throw(f"An unexpected error occurred: {e}")
 
+@frappe.whitelist(methods=["GET"])
+def order_create():
+    """
+    Creates Order Create with required fields
+    """
+    
+    return {"message": "order create"}

@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-20 00:50:35.558376",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "categories",
+  "currency",
+  "description",
+  "gallery",
+  "id",
+  "listedpublic",
+  "name1",
+  "price",
+  "producturl",
+  "quantity",
+  "quantity_unit",
+  "total_amount",
+  "unit_price",
+  "vendor_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "categories",
+   "fieldtype": "Link",
+   "label": "Categories",
+   "options": "Product Category Input"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "gallery",
+   "fieldtype": "Link",
+   "label": "Gallery",
+   "options": "Product Gallery Input"
+  },
+  {
+   "fieldname": "id",
+   "fieldtype": "Data",
+   "label": "Id"
+  },
+  {
+   "default": "0",
+   "fieldname": "listedpublic",
+   "fieldtype": "Check",
+   "label": "Listed Public"
+  },
+  {
+   "fieldname": "name1",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "label": "Price"
+  },
+  {
+   "fieldname": "producturl",
+   "fieldtype": "Data",
+   "label": "Product URL"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quantity_unit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Quantity Unit",
+   "options": "KG\nLITER\nPIECES",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Int",
+   "label": "Total Amount"
+  },
+  {
+   "fieldname": "unit_price",
+   "fieldtype": "Float",
+   "label": "Unit Price"
+  },
+  {
+   "fieldname": "vendor_id",
+   "fieldtype": "Data",
+   "label": "Vendor Id"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-20 01:11:38.943154",
+ "modified_by": "Administrator",
+ "module": "Sevi Plugin",
+ "name": "Order Item Input",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
