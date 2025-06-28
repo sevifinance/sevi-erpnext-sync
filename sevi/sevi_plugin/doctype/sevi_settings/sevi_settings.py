@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class BillingInput(Document):
+class SeviSettings(Document):
 	pass

@@ -1,0 +1,52 @@
+{
+ "app": "sevi",
+ "charts": [],
+ "content": "[{\"id\":\"AL5CoY1aHS\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Sevi Plugin</span>\",\"col\":12}},{\"id\":\"7x7LOXruNX\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+ "creation": "2025-06-28 00:03:22.104876",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "integration",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Sevi",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Links",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sevi Settings",
+   "link_count": 0,
+   "link_to": "Sevi Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-06-28 00:07:55.264347",
+ "modified_by": "Administrator",
+ "module": "Sevi Plugin",
+ "name": "Sevi",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 23.0,
+ "shortcuts": [],
+ "title": "Sevi",
+ "type": "Workspace"
+}

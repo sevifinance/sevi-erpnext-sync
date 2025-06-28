@@ -1,6 +1,9 @@
+import json
 import frappe
 from frappe.utils.password import get_decrypted_password
 from frappe.auth import LoginManager
+
+import requests
 
 from frappe.utils import get_url, now_datetime, add_to_date, random_string, nowdate, getdate
 from datetime import timedelta
@@ -275,10 +278,105 @@ def create_user_api(data):
         frappe.log_error(frappe.get_traceback(), "create_employee_and_user_with_roles API Error")
         frappe.throw(f"An unexpected error occurred: {e}")
 
-@frappe.whitelist(methods=["GET"])
-def order_create():
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def order_create(doc="{\"discount\": \"0000\"}"):
     """
     Creates Order Create with required fields
     """
-    
+    # TODO: check if exists and Create linked doctypes if not
+
+    doc_data = json.loads(doc) if doc != "" else json.loads({"discount": "000"})
+    frappe.msgprint(f"data : {doc}")
+
+    # TODO: Create a new order create
+
+    return {"message": "order create", "doc_discount": doc_data["discount"]}
+
+@frappe.whitelist(methods=["POST"],)
+def sync_order_hook():
+    """
+    Syinc Erpnext to Sevi api method
+    """
+
+    sevi_setting = frappe.get_single("Sevi Settings")
+
+    if not sevi_setting.get_password('sevi_token'):
+        frappe.throw("Token is Missing")
+
+    if not sevi_setting.get('order_hook_url'):
+        frappe.throw("Order Hook URL is Missing")
+
+    url = sevi_setting.get("sevi_url")
+    try:
+        payload = "{\"query\":\"mutation SetUpWebhooks($input: WebhookInput!) {\\r\\n  setUpWebhooks(input: $input) {\\r\\n    account\\r\\n    event\\r\\n    id\\r\\n    url\\r\\n  }\\r\\n}\",\"variables\":{\"input\":{\"event\":\"ORDER\",\"url\":\""+sevi_setting.get('order_hook_url')+"\"}}}"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': sevi_setting.get_password('sevi_token')
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response_data = json.loads(response.text)
+        if response_data.get('errors'):
+            frappe.throw(msg=response.text, title="Create Order Hook Failed!")
+    except:
+        frappe.throw(msg="Eror Settingup Order Hook URL", title="Create Order Hook Failed!")
+
+    frappe.msgprint(msg=f"response : {json.loads(response.text)}", title="Order Hook Created Successfully!", indicator="green")
+
     return {"message": "order create"}
+
+@frappe.whitelist(methods=["POST"],)
+def sync_transaction_hook():
+    """
+    Syinc Erpnext to Sevi api method
+    """
+
+    sevi_setting = frappe.get_single("Sevi Settings")
+
+    if not sevi_setting.get_password('sevi_token'):
+        frappe.throw("Token is Missing")
+
+    if not sevi_setting.get('transaction_hook_url'):
+        frappe.throw("Transaction Hook URL is Missing")
+
+    url = sevi_setting.get("sevi_url")
+
+    try:
+        payload = "{\"query\":\"mutation SetUpWebhooks($input: WebhookInput!) {\\r\\n  setUpWebhooks(input: $input) {\\r\\n    account\\r\\n    event\\r\\n    id\\r\\n    url\\r\\n  }\\r\\n}\",\"variables\":{\"input\":{\"event\":\"TRANSACTION\",\"url\":\""+sevi_setting.get('transaction_hook_url')+"\"}}}"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': sevi_setting.get_password('sevi_token')
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response_data = json.loads(response.text)
+        if response_data.get('errors'):
+            frappe.throw(msg=response.text, title="Create Transaction Hook Failed!")
+    except:
+        frappe.throw(msg="Eror Settingup Transaction Hook URL", title="Create Order Hook Failed!")
+
+    frappe.msgprint(msg=f"response : {response.text}", title="Transaction Hook Created Successfully!", indicator="green")
+
+    return {"message": "order created"}
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def order_hook():
+    """
+    Sevi Order Hook
+    """
+
+    frappe.msgprint(f"order hook is called")
+
+
+    return {"message": "order hook is called"}
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def transaction_hook():
+    """
+    Sevi Transaction Hook
+    """
+
+    frappe.msgprint(f"Transaction hook is called")
+
+
+    return {"message": "Transaction hook is called"}

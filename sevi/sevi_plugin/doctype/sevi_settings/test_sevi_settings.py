@@ -12,18 +12,18 @@ EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
-class UnitTestProductGalleryInput(UnitTestCase):
+class UnitTestSeviSettings(UnitTestCase):
 	"""
-	Unit tests for ProductGalleryInput.
+	Unit tests for SeviSettings.
 	Use this class for testing individual functions and methods.
 	"""
 
 	pass
 
 
-class IntegrationTestProductGalleryInput(IntegrationTestCase):
+class IntegrationTestSeviSettings(IntegrationTestCase):
 	"""
-	Integration tests for ProductGalleryInput.
+	Integration tests for SeviSettings.
 	Use this class for testing interactions between multiple components.
 	"""
 

@@ -1,0 +1,80 @@
+{
+ "actions": [
+  {
+   "action": "sevi.api.sync_order_hook",
+   "action_type": "Server Action",
+   "label": "Sync Sevi Order Hook"
+  },
+  {
+   "action": "sevi.api.sync_transaction_hook",
+   "action_type": "Server Action",
+   "label": "Sync Sevi Transaction Hook"
+  }
+ ],
+ "allow_rename": 1,
+ "creation": "2025-06-27 23:17:01.154884",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "auth_settings_section",
+  "sevi_token",
+  "order_hook_url",
+  "transaction_hook_url",
+  "sevi_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "sevi_token",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Sevi Token",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "order_hook_url",
+   "fieldtype": "Data",
+   "label": "Order Hook URL"
+  },
+  {
+   "fieldname": "transaction_hook_url",
+   "fieldtype": "Data",
+   "label": "Transaction Hook URL"
+  },
+  {
+   "fieldname": "auth_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Auth Settings"
+  },
+  {
+   "default": "https://sandbox.sevi.io/graphql",
+   "fieldname": "sevi_url",
+   "fieldtype": "Data",
+   "label": "Sevi_URL"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-06-28 02:14:56.267272",
+ "modified_by": "Administrator",
+ "module": "Sevi Plugin",
+ "name": "Sevi Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
