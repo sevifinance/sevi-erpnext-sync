@@ -4,6 +4,7 @@ app_publisher = "Sevi"
 app_description = "Sevi Plugin Uses to sync the other systems with erpnext."
 app_email = "info@sevi.io"
 app_license = "unlicense"
+app_logo_url = "/assets/erpnext/images/sevi-logo.svg"
 
 # Apps
 # ------------------
