@@ -454,9 +454,10 @@ def order_hook():
         # Attempt to find an existing customer or create a new one
         # This is a simplified example; you'd want more robust logic for customer management
         customer_docname = None
-        if customer_id:
+        if customer_phone:
             # Try to find by customer_id if you have a custom field for it, or by name/phone
-            existing_customer = frappe.db.get_value("Customer", {"customer_name": customer_name})
+            existing_customer = frappe.db.get_value("Customer", {"mobile_no": customer_phone})
+
             if existing_customer:
                 customer_docname = existing_customer
             else:
@@ -485,15 +486,14 @@ def order_hook():
         sales_order = frappe.get_doc({
             "doctype": "Sales Order",
             "customer": customer_docname,
-            "naming_series": "SO-",
             "transaction_date": frappe.utils.nowdate(),
             "delivery_date": frappe.utils.add_days(frappe.utils.nowdate(), 7), # Example: deliver in 7 days
             "order_type": "Sales",
             "currency": order_data.get("currency", "KES"),
             "conversion_rate": 1, # Assuming 1 for local currency, adjust if multi-currency
-            "set_warehouse": "Stores - SIT", # Default warehouse, adjust as needed
+            # "set_warehouse": "Stores - S", # Default warehouse, adjust as needed
             "po_no": order_data.get("platformReference"), # Use platformReference as PO No.
-            "custom_sevi_reference": order_data.get("referenceNumber"), # If you have a custom field for Sevi reference
+            # "custom_sevi_reference": order_data.get("referenceNumber"), # If you have a custom field for Sevi reference
             "total_commission_amount": 0, # Initialize or calculate if applicable
         })
 
@@ -503,7 +503,7 @@ def order_hook():
             frappe.throw("No items found in the order payload.")
 
         for item_data in items:
-            item_code = frappe.db.get_value("Item", {"item_name": item_data.get("name")})
+            item_code = frappe.db.get_value("Item", {"item_code": item_data.get("id")})
             if not item_code:
                 # Handle cases where item might not exist in ERPNext
                 # Option 1: Create the item (requires more fields and logic)
@@ -511,13 +511,12 @@ def order_hook():
                 # Option 3: Throw an error
                 frappe.log_warn(f"Item '{item_data.get('name')}' not found in ERPNext. Skipping.", "Sevi Order Hook Warning")
                 continue
-
             sales_order.append("items", {
                 "item_code": item_code,
                 "item_name": item_data.get("name"),
-                "description": item_data.get("description"),
+                # "description": item_data.get("description"),
                 "qty": item_data.get("quantity"),
-                "uom": item_data.get("quantityUnit", "Nos"),
+                # "uom": item_data.get("quantityUnit", "Nos"),
                 "rate": item_data.get("unitPrice"),
                 "amount": item_data.get("price"),
                 # "warehouse": "Stores - SIT", # Default item warehouse
